@@ -3,12 +3,14 @@ from typing import Optional
 from pydantic import BaseModel
 
 
-
 class Item(BaseModel):
     name: str
     description: str | None = None
     price: float
     tax: float | None = None
+
+items: dict[int, Item] = {}
+next_id = 1
 
 
 app = FastAPI()
@@ -17,14 +19,16 @@ app = FastAPI()
 def read_root():
     return {"Hello": "World"}
 
-# @app.get("/items/{item_id}")
-# def read_item(item_id:int, detail: Optional[str] = None):
-#     response =  {"item_id": item_id}
-#     if detail:
-#         response["detail"] = detail
-#     return response
+@app.post("/items/",response_model=Item)
+def create_item(item: Item):
+    global next_id
+    items[next_id] = item
+    created = items[next_id]
+    next_id += 1
+    return created
+
+@app.get("/items/",response_model=list[Item])
+def list_items():
+    return list(items.values())
 
 
-@app.post("/items/")
-def create_item(item:Item):
-    return item.description + "test"
